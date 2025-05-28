@@ -1,12 +1,9 @@
-import asyncio
-import sys
-
 from telegram.ext import (
-    ApplicationBuilder,
+    Updater,
     CommandHandler,
     MessageHandler,
+    Filters,
     ConversationHandler,
-    filters,
 )
 from handlers.registration import (
     start_registration,
@@ -29,45 +26,33 @@ from handlers.registration import (
 )
 import database
 
-async def main():
+def main():
     database.init_db()
-    application = ApplicationBuilder().token("7576353277:AAEOUM17xRrQdypjsaf3yqHOrrQYRVA_MiM").build()
+    updater = Updater("7576353277:AAEOUM17xRrQdypjsaf3yqHOrrQYRVA_MiM", use_context=True)
+    dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_registration)],
         states={
-            CHOOSING_ROLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_role_choice)],
-            CHOOSING_USTA_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_usta_type)],
-            ASK_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_name)],
-            ASK_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_phone)],
-            ASK_USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_username)],
-            SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, search_action)],
-            USTA_SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, usta_search_action)],
+            CHOOSING_ROLE: [MessageHandler(Filters.text & ~Filters.command, handle_role_choice)],
+            CHOOSING_USTA_TYPE: [MessageHandler(Filters.text & ~Filters.command, handle_usta_type)],
+            ASK_NAME: [MessageHandler(Filters.text & ~Filters.command, ask_name)],
+            ASK_PHONE: [MessageHandler(Filters.text & ~Filters.command, ask_phone)],
+            ASK_USERNAME: [MessageHandler(Filters.text & ~Filters.command, ask_username)],
+            SEARCH: [MessageHandler(Filters.text & ~Filters.command, search_action)],
+            USTA_SEARCH: [MessageHandler(Filters.text & ~Filters.command, usta_search_action)],
         },
         fallbacks=[
             CommandHandler('start', restart),
             CommandHandler('orqaga', back),
-            MessageHandler(filters.Regex('^/start$'), restart),
-            MessageHandler(filters.Regex('^/orqaga$'), back),
+            MessageHandler(Filters.regex('^/start$'), restart),
+            MessageHandler(Filters.regex('^/orqaga$'), back),
         ]
     )
-    application.add_handler(conv_handler)
+    dispatcher.add_handler(conv_handler)
 
-    await application.run_polling()
+    updater.start_polling()
+    updater.idle()
 
 if __name__ == '__main__':
-    import asyncio
-    import sys
-    if sys.platform.startswith("win"):
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    # Railway va server uchun eng to‘g‘ri:
-    try:
-        asyncio.run(main())
-    except RuntimeError as e:
-        # Railway va ba’zi serverlarda event loop allaqachon ishlayotgan bo‘lsa:
-        if "already running" in str(e):
-            loop = asyncio.get_event_loop()
-            loop.create_task(main())
-            loop.run_forever()
-        else:
-            raise
+    main()

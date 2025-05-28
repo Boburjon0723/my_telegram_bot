@@ -1,10 +1,7 @@
-import os
-import psycopg2
-
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:MguMiBWlSJLCfXJaZoRfrEookwbaFxwq@postgres.railway.internal:5432/railway")
+import sqlite3
 
 def get_conn():
-    return psycopg2.connect(DATABASE_URL, sslmode='require')
+    return sqlite3.connect("app.db")
 
 def init_db():
     conn = get_conn()
@@ -12,48 +9,22 @@ def init_db():
     # Foydalanuvchilar jadvali
     c.execute("""
         CREATE TABLE IF NOT EXISTS users (
-            user_id SERIAL PRIMARY KEY,
-            telegram_id BIGINT,
+            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            telegram_id INTEGER,
             full_name TEXT,
             phone TEXT,
             username TEXT,
-            is_usta BOOLEAN DEFAULT FALSE
+            is_usta BOOLEAN DEFAULT 0
         )
     """)
-    # Soha (skills) jadvali
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS skills (
-            skill_id SERIAL PRIMARY KEY,
-            name TEXT UNIQUE
-        )
-    """)
-    # Usta-soha bog‘lovchi jadval
+    # Usta malakalari jadvali
     c.execute("""
         CREATE TABLE IF NOT EXISTS usta_skills (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
-            skill_id INTEGER,
-            FOREIGN KEY(user_id) REFERENCES users(user_id),
-            FOREIGN KEY(skill_id) REFERENCES skills(skill_id)
+            skill TEXT
         )
     """)
-    # Buyurtmalar jadvali
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS orders (
-            id SERIAL PRIMARY KEY,
-            client_id INTEGER,
-            usta_id INTEGER,
-            skill_id INTEGER,
-            status TEXT DEFAULT 'new',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(client_id) REFERENCES users(user_id),
-            FOREIGN KEY(usta_id) REFERENCES users(user_id),
-            FOREIGN KEY(skill_id) REFERENCES skills(skill_id)
-        )
-    """)
-    # Asosiy sohalarni kiritish (agar yo‘q bo‘lsa)
-    skills = ["Santexnik", "Elektrik", "Malyarkachi", "Betonchi", "G'isht quyish", "Quruvchi"]
-    for skill in skills:
-        c.execute("INSERT INTO skills (name) VALUES (%s) ON CONFLICT (name) DO NOTHING", (skill,))
     conn.commit()
     conn.close()
 
@@ -62,41 +33,29 @@ def save_user(telegram_id, full_name, phone, username, is_usta):
     c = conn.cursor()
     c.execute("""
         INSERT INTO users (telegram_id, full_name, phone, username, is_usta)
-        VALUES (%s, %s, %s, %s, %s)
-        RETURNING user_id
+        VALUES (?, ?, ?, ?, ?)
     """, (telegram_id, full_name, phone, username, is_usta))
-    user_id = c.fetchone()[0]
+    user_id = c.lastrowid
     conn.commit()
     conn.close()
     return user_id
 
-def get_skill_id(skill_name):
+def save_usta_skill(user_id, skill):
     conn = get_conn()
     c = conn.cursor()
-    c.execute("SELECT skill_id FROM skills WHERE name = %s", (skill_name,))
-    row = c.fetchone()
+    c.execute("INSERT INTO usta_skills (user_id, skill) VALUES (?, ?)", (user_id, skill))
+    conn.commit()
     conn.close()
-    return row[0] if row else None
 
-def save_usta_skill(user_id, skill_name):
-    skill_id = get_skill_id(skill_name)
-    if skill_id:
-        conn = get_conn()
-        c = conn.cursor()
-        c.execute("INSERT INTO usta_skills (user_id, skill_id) VALUES (%s, %s) ON CONFLICT DO NOTHING", (user_id, skill_id))
-        conn.commit()
-        conn.close()
-
-def find_ustalar_by_skill(skill_name):
-    skill_id = get_skill_id(skill_name)
+def find_ustalar_by_skill(skill):
     conn = get_conn()
     c = conn.cursor()
     c.execute("""
-        SELECT u.full_name, u.phone, u.username
-        FROM users u
-        JOIN usta_skills us ON u.user_id = us.user_id
-        WHERE us.skill_id = %s
-    """, (skill_id,))
-    ustalar = c.fetchall()
+        SELECT users.full_name, users.phone, users.username
+        FROM users
+        JOIN usta_skills ON users.user_id = usta_skills.user_id
+        WHERE usta_skills.skill = ?
+    """, (skill,))
+    result = c.fetchall()
     conn.close()
-    return ustalar
+    return result

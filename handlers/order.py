@@ -2,7 +2,7 @@ from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     CommandHandler,
     MessageHandler,
-    filters,
+    Filters,
     ConversationHandler,
     CallbackContext
 )
@@ -53,9 +53,9 @@ def cancel_order(update: Update, context: CallbackContext) -> int:
 order_conv_handler = ConversationHandler(
     entry_points=[CommandHandler('order', start_order)],
     states={
-        SERVICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_service)],
-        PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_phone)],
-        LOCATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_location)]
+        SERVICE: [MessageHandler(Filters.text & ~Filters.command, receive_service)],
+        PHONE: [MessageHandler(Filters.text & ~Filters.command, receive_phone)],
+        LOCATION: [MessageHandler(Filters.text & ~Filters.command, receive_location)]
     },
     fallbacks=[CommandHandler('cancel', cancel_order)]
 )

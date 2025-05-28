@@ -166,9 +166,15 @@ def back(update, context):
         context.user_data['last_state'] = ASK_PHONE
         return ASK_PHONE
     elif state == SEARCH:
-        update.message.reply_text("Telegram global nomingizni (username) kiriting (masalan: @username):", reply_markup=get_keyboard())
-        context.user_data['last_state'] = ASK_USERNAME
-        return ASK_USERNAME
+        role = context.user_data.get('role')
+        if role == "Ustaman":
+            update.message.reply_text("Ismingizni kiriting:", reply_markup=get_keyboard())
+            context.user_data['last_state'] = ASK_NAME
+            return ASK_NAME
+        else:
+            update.message.reply_text("Telefon raqamingizni kiriting:", reply_markup=get_keyboard())
+            context.user_data['last_state'] = ASK_PHONE
+            return ASK_PHONE
     elif state == USTA_SEARCH:
         update.message.reply_text(
             "Qaysi soha bo‘yicha usta qidiryapsiz?",
