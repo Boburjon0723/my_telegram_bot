@@ -1,9 +1,11 @@
+# filepath: [main.py](http://_vscodecontentref_/0)
 from telegram.ext import (
-    Updater,
+    ApplicationBuilder,
     CommandHandler,
     MessageHandler,
     ConversationHandler,
-    filters
+    ContextTypes,
+    filters,
 )
 from handlers.registration import (
     start_registration,
@@ -26,10 +28,9 @@ from handlers.registration import (
 )
 import database
 
-def main():
+async def main():
     database.init_db()
-    updater = Updater("7576353277:AAEaeYsp0IAcOkTiUgmgDbWjSDKIuZj-knE")
-    dispatcher = updater.dispatcher
+    application = ApplicationBuilder().token("7576353277:AAEaeYsp0IAcOkTiUgmgDbWjSDKIuZj-knE").build()
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_registration)],
@@ -49,10 +50,10 @@ def main():
             MessageHandler(filters.Regex('^/orqaga$'), back),
         ]
     )
-    dispatcher.add_handler(conv_handler)
+    application.add_handler(conv_handler)
 
-    updater.start_polling()
-    updater.idle()
+    await application.run_polling()
 
 if __name__ == '__main__':
-    main()
+    import asyncio
+    asyncio.run(main())
