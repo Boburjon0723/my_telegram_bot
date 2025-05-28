@@ -1,10 +1,8 @@
-# filepath: [main.py](http://_vscodecontentref_/0)
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
     ConversationHandler,
-    ContextTypes,
     filters,
 )
 from handlers.registration import (
@@ -56,4 +54,7 @@ async def main():
 
 if __name__ == '__main__':
     import asyncio
+    import sys
+    if sys.platform.startswith("win"):
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     asyncio.run(main())
