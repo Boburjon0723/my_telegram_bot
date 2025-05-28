@@ -28,7 +28,7 @@ import database
 
 async def main():
     database.init_db()
-    application = ApplicationBuilder().token("7576353277:AAEaeYsp0IAcOkTiUgmgDbWjSDKIuZj-knE").build()
+    application = ApplicationBuilder().token("7576353277:AAEOUM17xRrQdypjsaf3yqHOrrQYRVA_MiM").build()
 
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', start_registration)],
