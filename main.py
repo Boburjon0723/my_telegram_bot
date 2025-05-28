@@ -31,22 +31,22 @@ def main():
     updater = Updater("7576353277:AAEaeYsp0IAcOkTiUgmgDbWjSDKIuZj-knE")
     dispatcher = updater.dispatcher
 
-   conv_handler = ConversationHandler(
-    entry_points=[CommandHandler('start', start_registration)],
-    states={
-        CHOOSING_ROLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_role_choice)],
-        CHOOSING_USTA_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_usta_type)],
-        ASK_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_name)],
-        ASK_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_phone)],
-        ASK_USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_username)],
-        SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, search_action)],
-        USTA_SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, usta_search_action)],
-    },
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', start_registration)],
+        states={
+            CHOOSING_ROLE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_role_choice)],
+            CHOOSING_USTA_TYPE: [MessageHandler(filters.TEXT & ~filters.COMMAND, handle_usta_type)],
+            ASK_NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_name)],
+            ASK_PHONE: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_phone)],
+            ASK_USERNAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, ask_username)],
+            SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, search_action)],
+            USTA_SEARCH: [MessageHandler(filters.TEXT & ~filters.COMMAND, usta_search_action)],
+        },
         fallbacks=[
             CommandHandler('start', restart),
             CommandHandler('orqaga', back),
-            MessageHandler(filters.regex('^/start$'), restart),
-            MessageHandler(filters.regex('^/orqaga$'), back),
+            MessageHandler(filters.Regex('^/start$'), restart),
+            MessageHandler(filters.Regex('^/orqaga$'), back),
         ]
     )
     dispatcher.add_handler(conv_handler)
