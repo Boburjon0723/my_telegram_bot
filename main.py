@@ -1,3 +1,6 @@
+import asyncio
+import sys
+
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -57,4 +60,14 @@ if __name__ == '__main__':
     import sys
     if sys.platform.startswith("win"):
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.get_event_loop().run_until_complete(main())
+    # Railway va server uchun eng to‘g‘ri:
+    try:
+        asyncio.run(main())
+    except RuntimeError as e:
+        # Railway va ba’zi serverlarda event loop allaqachon ishlayotgan bo‘lsa:
+        if "already running" in str(e):
+            loop = asyncio.get_event_loop()
+            loop.create_task(main())
+            loop.run_forever()
+        else:
+            raise
